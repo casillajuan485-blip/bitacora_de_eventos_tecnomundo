@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>STREAM SALES BOLIVIA | Live Shopping</title>
+  <meta name="description" content="Plataforma simulada de Live Shopping: transmisión en vivo, catálogo, chat, compras rápidas y bitácora de eventos.">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/estilo.css">
+  <!-- defer: el script se ejecuta cuando el DOM ya está listo, sin bloquear la carga -->
+  <script src="js/java.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#en-vivo">Saltar al contenido</a>
+
+  <!-- ===================== ENCABEZADO ===================== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="#en-vivo" aria-label="STREAM SALES BOLIVIA, ir al inicio">
+        <span class="logo-main">TECNOMUNDO</span>
+        <span class="logo-sub">BOLIVIA</span>
+      </a>
+      <nav class="main-nav" aria-label="Principal">
+        <ul>
+          <li><a href="#en-vivo">En vivo</a></li>
+          <li><a href="#catalogo">Productos</a></li>
+          <li><a href="#comprar">Comprar</a></li>
+          <li><a href="#pedidos">Pedidos</a></li>
+          <li><a href="#bitacora">Bitácora</a></li>
+        </ul>
+      </nav>
+      <span class="badge-live" role="status"><span class="dot" aria-hidden="true"></span>EN VIVO</span>
+    </div>
+  </header>
+
+  <main>
+    <!--
+      #liveContainer: ÚNICO contenedor que escucha los eventos del live
+      (click, dblclick, keyup, change). Todo lo que está dentro, incluidos los
+      productos agregados dinámicamente, se maneja con delegación de eventos.
+    -->
+    <section id="liveContainer" class="live-grid" aria-label="Transmisión en vivo">
+
+      <!-- ===== MÓDULO 1: TRANSMISIÓN ===== -->
+      <div class="stream-panel" id="en-vivo">
+        <div class="stage">
+          <div class="stage-top">
+            <span class="badge-live"><span class="dot" aria-hidden="true"></span>EN VIVO</span>
+            <span class="viewers"><span aria-hidden="true">👁</span> <span id="viewerCount">128</span> espectadores</span>
+          </div>
+          <div class="presenter" aria-hidden="true">
+            <div class="presenter-avatar">SS</div>
+            <div class="presenter-wave"></div>
+          </div>
+          <div class="stage-offer">
+            <p class="offer-label">Oferta relámpago</p>
+            <p class="offer-name" id="featuredName">Auriculares Gamer</p>
+          </div>
+          <div id="heartLayer" class="heart-layer" aria-hidden="true"></div>
+        </div>
+
+        <div class="stream-info">
+          <h1>Live de ofertas gamer</h1>
+          <p>@streamsalesbo en TikTok Live. Simulación: no se transmite video real.</p>
+        </div>
+
+        <div class="stream-actions">
+          <!-- data-action indica qué hace el botón; el listener central lo lee con closest() -->
+          <button type="button" class="btn btn-like" data-action="like">
+            <span aria-hidden="true">👍</span> Like <span class="count" id="likeCount">0</span>
+          </button>
+          <button type="button" class="btn btn-heart" data-action="reaccion" title="Haz doble clic para lanzar corazones">
+            <span aria-hidden="true">❤️</span> Reaccionar <span class="count" id="heartCount">0</span>
+          </button>
+          <span class="hint">Doble clic en Reaccionar para lanzar corazones.</span>
+        </div>
+      </div>
+
+      <!-- ===== MÓDULO 2: CATÁLOGO ===== -->
+      <section id="catalogSection" class="catalog-panel">
+        <div class="panel-head" id="catalogo">
+          <h2>Productos destacados</h2>
+          <p class="muted">Elige una variante y pulsa Comprar.</p>
+        </div>
+
+        <div id="catalogGrid" class="catalog-grid"></div>
+
+        <details class="add-product">
+          <summary class="btn btn-ghost">Agregar producto al catálogo</summary>
+          <form id="productForm" novalidate>
+            <div class="field">
+              <label for="nuevoNombre">Nombre</label>
+              <input id="nuevoNombre" name="nombre" type="text" aria-describedby="errNuevoNombre" maxlength="40" required autocomplete="off">
+              <p class="field-error" id="errNuevoNombre" role="alert"></p>
+            </div>
+            <div class="field">
+              <label for="nuevaDescripcion">Descripción (opcional)</label>
+              <input id="nuevaDescripcion" name="descripcion" type="text" maxlength="120" autocomplete="off">
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="nuevoPrecio">Precio (Bs.)</label>
+                <input id="nuevoPrecio" name="precio" type="number" aria-describedby="errNuevoPrecio" min="0.01" step="0.01" inputmode="decimal" required>
+                <p class="field-error" id="errNuevoPrecio" role="alert"></p>
+              </div>
+              <div class="field">
+                <label for="nuevoStock">Stock</label>
+                <input id="nuevoStock" name="stock" type="number" aria-describedby="errNuevoStock" min="0" max="9999" step="1" inputmode="numeric" required>
+                <p class="field-error" id="errNuevoStock" role="alert"></p>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Agregar producto</button>
+          </form>
+        </details>
+      </section>
+
+      <!-- ===== MÓDULO 4: CHAT ===== -->
+      <aside class="chat-panel" aria-label="Chat del live">
+        <div class="panel-head">
+          <h2>Chat del live</h2>
+        </div>
+        <ul id="chatMessages" class="chat-messages" role="log" aria-live="polite"></ul>
+        <form id="chatForm" novalidate>
+          <label class="sr-only" for="chatInput">Escribe un comentario</label>
+          <div class="chat-input-row">
+            <input id="chatInput" name="comentario" type="text" aria-describedby="errChat chatCounter" maxlength="200" placeholder="Escribe un comentario..." autocomplete="off">
+            <button type="submit" class="btn btn-primary">Enviar</button>
+          </div>
+          <div class="chat-meta">
+            <p class="field-error" id="errChat" role="alert"></p>
+            <span class="muted" id="chatCounter">0 / 200</span>
+          </div>
+        </form>
+      </aside>
+    </section>
+
+    <div class="checkout-grid">
+      <!-- ===== MÓDULO DÍA 2: COMPRA RÁPIDA ===== -->
+      <section id="comprar" class="panel">
+        <div class="panel-head">
+          <h2>Compra rápida</h2>
+          <p class="muted">Compra simulada. No se procesan pagos reales.</p>
+        </div>
+
+        <!-- novalidate: desactiva los mensajes nativos para que nuestras validaciones en JS
+             muestren mensajes claros y los registren en la bitácora. Se conservan
+             required/min/max/maxlength como documentación y ayuda para el teclado. -->
+        <form id="checkoutForm" novalidate>
+          <div class="field">
+            <label for="formProducto">Producto</label>
+            <select id="formProducto" name="producto" aria-describedby="errProducto" required></select>
+            <p class="field-error" id="errProducto" role="alert"></p>
+          </div>
+          <div class="field">
+            <label for="formVariante">Variante</label>
+            <select id="formVariante" name="variante" aria-describedby="errVariante" required></select>
+            <p class="field-error" id="errVariante" role="alert"></p>
+          </div>
+          <div class="field">
+            <label for="formUsuario">Usuario de TikTok</label>
+            <input id="formUsuario" name="usuario" type="text" aria-describedby="errUsuario" maxlength="25" placeholder="@tu_usuario" autocomplete="off" required>
+            <p class="field-error" id="errUsuario" role="alert"></p>
+          </div>
+          <div class="field">
+            <label for="formCantidad">Cantidad</label>
+            <input id="formCantidad" name="cantidad" type="number" aria-describedby="errCantidad" min="1" max="999" step="1" inputmode="numeric" placeholder="1" required>
+            <p class="field-error" id="errCantidad" role="alert"></p>
+          </div>
+
+          <div class="price-row">
+            <div>
+              <span class="muted">Precio unitario</span>
+              <output id="precioUnitario">Bs. 0.00</output>
+            </div>
+            <div>
+              <span class="muted">Total</span>
+              <output id="totalCompra" class="total">Bs. 0.00</output>
+            </div>
+          </div>
+
+          <p id="resumenPedido" class="summary">Elige un producto para ver el resumen del pedido.</p>
+
+          <button type="submit" id="btnConfirmar" class="btn btn-success">Confirmar compra</button>
+          <div id="confirmacion" class="confirmation" hidden role="status"></div>
+        </form>
+      </section>
+
+      <!-- ===== RESUMEN DE PEDIDOS Y ESTADÍSTICAS ===== -->
+      <section id="pedidos" class="panel">
+        <div class="panel-head">
+          <h2>Pedidos y estadísticas</h2>
+        </div>
+        <div class="stats">
+          <div class="stat"><span class="stat-value" id="statPedidos">0</span><span class="muted">Pedidos</span></div>
+          <div class="stat"><span class="stat-value" id="statIngresos">Bs. 0.00</span><span class="muted">Ingresos</span></div>
+          <div class="stat"><span class="stat-value" id="statUnidades">0</span><span class="muted">Unidades vendidas</span></div>
+          <div class="stat"><span class="stat-value" id="statStock">0</span><span class="muted">Unidades en stock</span></div>
+        </div>
+        <ol id="orderList" class="order-list" aria-label="Pedidos realizados"></ol>
+      </section>
+    </div>
+
+    <!-- ===== BITÁCORA ===== -->
+    <section id="bitacora" class="panel log-panel">
+      <div class="panel-head log-head">
+        <div>
+          <h2>Bitácora de eventos</h2>
+          <p class="muted">Lo más reciente aparece arriba. Máximo 100 registros visibles.</p>
+        </div>
+        <div class="log-tools">
+          <label class="switch">
+            <input type="checkbox" id="bubblingToggle">
+            <span>Mostrar propagación (bubbling)</span>
+          </label>
+          <button type="button" id="btnLimpiarBitacora" class="btn btn-ghost">Limpiar bitácora</button>
+        </div>
+      </div>
+      <p class="log-counter muted" id="logCounter" role="status">0 en pantalla · 0 en la sesión</p>
+      <ul id="logList" class="log-list" aria-label="Registros de eventos"></ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>TECNOMUNDO es una empresa ficticia </p>
+  </footer>
+
+  <!-- Confirmación PREVIA: sin descontar stock hasta aceptar -->
+  <dialog id="pedidoDialog" class="pedido-dialog" aria-labelledby="pedidoDialogTitulo" aria-describedby="pedidoDialogResumen">
+    <div class="dialog-inner">
+      <span class="dialog-kicker">Revisión del pedido</span>
+      <h2 id="pedidoDialogTitulo">¿Confirmas tu compra?</h2>
+      <p id="pedidoDialogResumen" class="dialog-summary"></p>
+      <div class="dialog-actions">
+        <button type="button" id="cancelarPedido" class="btn btn-ghost">Cancelar</button>
+        <button type="button" id="aceptarPedido" class="btn btn-success">Sí, confirmar pedido</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+</body>
+</html>
